@@ -1,0 +1,411 @@
+{
+  "users": [
+    {
+      "id": "U001",
+      "name": "Nour Hassan",
+      "role": "organizer",
+      "email": "nour@layali.test",
+      "password": "demo123",
+      "active": true
+    },
+    {
+      "id": "U002",
+      "name": "Omar Selim",
+      "role": "staff",
+      "email": "omar@layali.test",
+      "password": "demo123",
+      "active": true,
+      "speciality": "Logistics",
+      "employmentType": "full-time"
+    },
+    {
+      "id": "U003",
+      "name": "Mariam Adel",
+      "role": "staff",
+      "email": "mariam@layali.test",
+      "password": "demo123",
+      "active": true,
+      "speciality": "Guest Experience",
+      "employmentType": "part-time"
+    },
+    {
+      "id": "U004",
+      "name": "Cairo Bloom Catering",
+      "role": "vendor",
+      "email": "sales@cairobloom.test",
+      "password": "demo123",
+      "active": true
+    },
+    {
+      "id": "U005",
+      "name": "Zamalek Warehouse Co.",
+      "role": "owner",
+      "email": "owner@zamalekwarehouse.test",
+      "password": "demo123",
+      "active": true
+    },
+    {
+      "id": "U006",
+      "name": "Farah Amin",
+      "role": "guest",
+      "email": "farah@example.test",
+      "password": "demo123",
+      "active": true
+    }
+  ],
+  "venues": [
+    {
+      "id": "V001",
+      "ownerId": "U005",
+      "name": "Zamalek Glasshouse",
+      "location": "Cairo",
+      "capacity": 180,
+      "size": 360,
+      "pricePerDay": 42000,
+      "amenities": [
+        "Garden terrace",
+        "Projector",
+        "Valet"
+      ],
+      "photos": [
+        "glasshouse-main.jpg",
+        "terrace-entry.jpg"
+      ],
+      "floorPlan": "glasshouse-floorplan.pdf",
+      "active": true,
+      "availableDates": [
+        "2026-07-10",
+        "2026-07-18",
+        "2026-08-02"
+      ]
+    },
+    {
+      "id": "V002",
+      "ownerId": "U005",
+      "name": "Nile Foundry Hall",
+      "location": "Giza",
+      "capacity": 260,
+      "size": 520,
+      "pricePerDay": 58000,
+      "amenities": [
+        "Loading dock",
+        "Stage lights",
+        "Backup generator"
+      ],
+      "photos": [
+        "foundry-hall.jpg"
+      ],
+      "floorPlan": "foundry-floorplan.pdf",
+      "active": true,
+      "availableDates": [
+        "2026-07-12",
+        "2026-07-20"
+      ]
+    },
+    {
+      "id": "V003",
+      "ownerId": "U005",
+      "name": "Heliopolis Rooftop Studio",
+      "location": "Cairo",
+      "capacity": 90,
+      "size": 170,
+      "pricePerDay": 22000,
+      "amenities": [
+        "Rooftop",
+        "Sound system"
+      ],
+      "photos": [
+        "rooftop-studio.jpg"
+      ],
+      "floorPlan": "rooftop-floorplan.pdf",
+      "active": true,
+      "availableDates": [
+        "2026-07-10",
+        "2026-07-22"
+      ]
+    }
+  ],
+  "events": [
+    {
+      "id": "E001",
+      "organizerId": "U001",
+      "venueId": "V001",
+      "name": "Nile Makers Night",
+      "type": "Creative Market",
+      "date": "2026-07-10",
+      "status": "Planning",
+      "dressCode": "Smart casual",
+      "agenda": "5:00 doors, 6:00 demos, 8:00 live showcase",
+      "expectedGuests": 140,
+      "plannedBudget": 155000
+    },
+    {
+      "id": "E002",
+      "organizerId": "U001",
+      "venueId": "V003",
+      "name": "Founders Sunset Forum",
+      "type": "Networking",
+      "date": "2026-07-22",
+      "status": "Confirmed",
+      "dressCode": "Business casual",
+      "agenda": "6:00 reception, 7:00 panel, 8:30 networking",
+      "expectedGuests": 75,
+      "plannedBudget": 92000
+    }
+  ],
+  "bookingRequests": [
+    {
+      "id": "B001",
+      "organizerId": "U001",
+      "venueId": "V001",
+      "eventName": "Nile Makers Night",
+      "eventDate": "2026-07-10",
+      "attendees": 140,
+      "status": "Approved",
+      "message": "Need terrace access and projector.",
+      "counterProposal": ""
+    },
+    {
+      "id": "B002",
+      "organizerId": "U001",
+      "venueId": "V002",
+      "eventName": "Design Supply Expo",
+      "eventDate": "2026-07-20",
+      "attendees": 230,
+      "status": "Pending",
+      "message": "Requesting stage and loading access.",
+      "counterProposal": ""
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T001",
+      "eventId": "E001",
+      "title": "Confirm welcome desk tablets",
+      "speciality": "Guest Experience",
+      "assigneeId": "U003",
+      "status": "In Progress",
+      "dueDate": "2026-07-07",
+      "reminderSent": false
+    },
+    {
+      "id": "T002",
+      "eventId": "E001",
+      "title": "Mark vendor loading route",
+      "speciality": "Logistics",
+      "assigneeId": "U002",
+      "status": "Pending",
+      "dueDate": "2026-07-08",
+      "reminderSent": false
+    },
+    {
+      "id": "T003",
+      "eventId": "E002",
+      "title": "Prepare rooftop seating map",
+      "speciality": "Seating",
+      "assigneeId": "",
+      "status": "Not Assigned",
+      "dueDate": "2026-07-18",
+      "reminderSent": false
+    }
+  ],
+  "budgetItems": [
+    {
+      "id": "P001",
+      "eventId": "E001",
+      "category": "Venue",
+      "planned": 42000,
+      "actual": 42000
+    },
+    {
+      "id": "P002",
+      "eventId": "E001",
+      "category": "Catering",
+      "planned": 52000,
+      "actual": 48600
+    },
+    {
+      "id": "P003",
+      "eventId": "E001",
+      "category": "Production",
+      "planned": 36000,
+      "actual": 40250
+    },
+    {
+      "id": "P004",
+      "eventId": "E001",
+      "category": "Marketing",
+      "planned": 25000,
+      "actual": 21400
+    }
+  ],
+  "vendors": [
+    {
+      "id": "VN001",
+      "userId": "U004",
+      "companyName": "Cairo Bloom Catering",
+      "supplies": [
+        "Canapes",
+        "Beverages",
+        "Dessert station"
+      ],
+      "location": "Maadi",
+      "pricing": "From 380 EGP per guest",
+      "contact": "0100-555-1400",
+      "rating": 4.7
+    },
+    {
+      "id": "VN002",
+      "userId": "",
+      "companyName": "SoundCraft Rentals",
+      "supplies": [
+        "Speakers",
+        "Lighting",
+        "Technicians"
+      ],
+      "location": "Nasr City",
+      "pricing": "Packages from 18000 EGP",
+      "contact": "0102-222-3311",
+      "rating": 4.5
+    }
+  ],
+  "sourcingRequests": [
+    {
+      "id": "SR001",
+      "eventId": "E001",
+      "vendorId": "VN001",
+      "items": "140 guest buffet with vegetarian options",
+      "quantity": 140,
+      "deliveryDate": "2026-07-10",
+      "status": "Accepted",
+      "note": "Please add two gluten-free trays.",
+      "deliveryStatus": "Preparing"
+    },
+    {
+      "id": "SR002",
+      "eventId": "E001",
+      "vendorId": "VN002",
+      "items": "Outdoor speaker and two wireless microphones",
+      "quantity": 1,
+      "deliveryDate": "2026-07-10",
+      "status": "Pending",
+      "note": "",
+      "deliveryStatus": "Not Scheduled"
+    }
+  ],
+  "invoices": [
+    {
+      "id": "I001",
+      "vendorId": "VN001",
+      "eventId": "E001",
+      "amount": 48600,
+      "status": "Pending Review",
+      "breakdown": "Buffet, beverages, service team",
+      "attachment": "buffet-invoice-breakdown.pdf",
+      "submittedAt": "2026-07-02"
+    }
+  ],
+  "guests": [
+    {
+      "id": "G001",
+      "eventId": "E001",
+      "name": "Farah Amin",
+      "email": "farah@example.test",
+      "rsvp": "Attending",
+      "dietary": "Vegetarian",
+      "checkedIn": true,
+      "messageSeen": true,
+      "qrCode": "LAYALI-G001"
+    },
+    {
+      "id": "G002",
+      "eventId": "E001",
+      "name": "Karim Lotfy",
+      "email": "karim@example.test",
+      "rsvp": "Maybe",
+      "dietary": "No peanuts",
+      "checkedIn": false,
+      "messageSeen": false,
+      "qrCode": "LAYALI-G002"
+    },
+    {
+      "id": "G003",
+      "eventId": "E001",
+      "name": "Lina Samir",
+      "email": "lina@example.test",
+      "rsvp": "Attending",
+      "dietary": "None",
+      "checkedIn": false,
+      "messageSeen": true,
+      "qrCode": "LAYALI-G003"
+    }
+  ],
+  "communications": [
+    {
+      "id": "M001",
+      "eventId": "E001",
+      "body": "Welcome desk moved to the garden gate. Please follow signs.",
+      "sentAt": "2026-07-10T16:15:00",
+      "audience": "All Guests",
+      "seenBy": [
+        "G001",
+        "G003"
+      ]
+    }
+  ],
+  "feedback": [
+    {
+      "id": "F001",
+      "eventId": "E001",
+      "guestId": "G001",
+      "overall": 5,
+      "food": 4,
+      "venue": 5,
+      "organization": 5,
+      "comments": "Smooth check-in and lovely venue."
+    },
+    {
+      "id": "F002",
+      "eventId": "E001",
+      "guestId": "G003",
+      "overall": 4,
+      "food": 5,
+      "venue": 4,
+      "organization": 4,
+      "comments": "Great experience, signs could be larger."
+    }
+  ],
+  "layouts": [
+    {
+      "id": "L001",
+      "eventId": "E001",
+      "name": "Glasshouse Main Layout",
+      "elements": [
+        {
+          "id": "LE001",
+          "type": "Stage",
+          "x": 64,
+          "y": 36
+        },
+        {
+          "id": "LE002",
+          "type": "Buffet",
+          "x": 18,
+          "y": 64
+        },
+        {
+          "id": "LE003",
+          "type": "Welcome Desk",
+          "x": 76,
+          "y": 72
+        },
+        {
+          "id": "LE004",
+          "type": "Seating",
+          "x": 46,
+          "y": 56
+        }
+      ]
+    }
+  ]
+}
