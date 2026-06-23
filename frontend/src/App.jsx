@@ -108,13 +108,15 @@ function LayoutEditor({ data, reload, setToast }) {
     setToast(`${tool} added to layout`);
   }
 
-  async function moveElement(event) {
-    if (!dragId) return;
+  async function moveElement(event, droppedId = dragId) {
+    event.preventDefault();
+    if (!droppedId) return;
     const rect = event.currentTarget.getBoundingClientRect();
     const x = Math.max(4, Math.min(96, Math.round(((event.clientX - rect.left) / rect.width) * 100)));
     const y = Math.max(6, Math.min(94, Math.round(((event.clientY - rect.top) / rect.height) * 100)));
-    await saveElements(layout.elements.map((item) => item.id === dragId ? { ...item, x, y } : item));
+    await saveElements(layout.elements.map((item) => item.id === droppedId ? { ...item, x, y } : item));
     setDragId(null);
+    setToast('Layout element moved');
   }
 
   async function removeElement(id) {
@@ -134,8 +136,20 @@ function LayoutEditor({ data, reload, setToast }) {
       <button type="button" onClick={exportSvg}><FileImage size={16} /> Export image</button>
       <button type="button" onClick={() => window.print()}><FileDown size={16} /> Print PDF</button>
     </div>
-    <div className="floorplan designer" onDoubleClick={addElement} onMouseUp={moveElement}>
-      {layout.elements.map((item) => <button key={item.id} title="Drag to move. Double click the plan to add." onMouseDown={(e) => { e.stopPropagation(); setDragId(item.id); }} style={{ left: `${item.x}%`, top: `${item.y}%` }}>{item.type}</button>)}
+    <div
+      className="floorplan designer"
+      onDoubleClick={addElement}
+      onDragOver={(event) => event.preventDefault()}
+      onDrop={(event) => moveElement(event, event.dataTransfer.getData('text/plain') || dragId)}
+    >
+      {layout.elements.map((item) => <button
+        key={item.id}
+        draggable
+        title="Drag to move. Double click the plan to add."
+        onDoubleClick={(event) => event.stopPropagation()}
+        onDragStart={(event) => { setDragId(item.id); event.dataTransfer.setData('text/plain', item.id); event.dataTransfer.effectAllowed = 'move'; }}
+        style={{ left: `${item.x}%`, top: `${item.y}%` }}
+      >{item.type}</button>)}
     </div>
     <div className="mini-table">{layout.elements.map((item) => <div key={item.id}><span>{item.type}</span><span>{item.x}%, {item.y}%</span><button className="icon danger" onClick={() => removeElement(item.id)}><Trash2 size={15} /></button></div>)}</div>
   </section>;

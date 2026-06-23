@@ -66,6 +66,7 @@ textarea { min-height: 90px; resize: vertical; }
 .floorplan button { position: absolute; transform: translate(-50%, -50%); background: #2d4f73; white-space: nowrap; }
 .floorplan.designer { cursor: crosshair; margin-top: 12px; }
 .floorplan.designer button { cursor: grab; user-select: none; }
+.floorplan.designer button:active { cursor: grabbing; }
 .invite { background: #123331; color: #fff8e7; }
 .invite p { color: #d6e4df; }
 .qr { border: 2px dashed rgba(255,255,255,.65); border-radius: 8px; padding: 28px; margin: 22px 0; text-align: center; font-size: 28px; letter-spacing: 0; }
