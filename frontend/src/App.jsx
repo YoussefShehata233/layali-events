@@ -448,7 +448,11 @@ export default function App() {
     </aside>
     <section className="workspace">
       <header>
-        <div><h1>{role === 'owner' ? 'Venue Owner' : role[0].toUpperCase() + role.slice(1)} Workspace</h1><p>Role-based flows for event planning, operations, supplier coordination, RSVP, and venue bookings.</p></div>
+        <div>
+          <h1>{role === 'owner' ? 'Venue Owner' : role[0].toUpperCase() + role.slice(1)} Workspace</h1>
+          <p>Role-based flows for event planning, operations, supplier coordination, RSVP, and venue bookings.</p>
+          <div className="login-badge"><UserCog size={16} /> Logged in as <strong>{currentUser.name}</strong> <span>{currentUser.email}</span></div>
+        </div>
         <div className="header-actions"><button onClick={load}>Refresh data</button><button className="ghost" onClick={() => setCurrentUser(null)}>Log out</button></div>
       </header>
       {loading ? <div className="loading">Loading platform data...</div> : screen[role]}
