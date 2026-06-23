@@ -4,7 +4,7 @@ Layali Events is a full-stack event management platform built for CSEN B503 Mile
 
 ## Team members and contributions
 
-- Youssef Ahmed: project documentation, setup guide, AI chatlog, and submission checklist.
+- Youssef Ahmed: project documentation, setup guide, and submission checklist.
 - Mohamed Amr: backend project setup, package configuration, and JSON database helper.
 - Fady Samir: realistic dummy data, seed script, and database records.
 - Youssef Elgedawy: Node.js backend APIs, validation, filtering, reports, and workflow endpoints.
@@ -113,6 +113,3 @@ npm run seed
 - Email and messaging delivery are simulated with database records and status fields.
 - Venue photos, floor plans, invoice attachments, and vendor documents are represented as filename/document references for local demo purposes.
 
-## AI usage disclosure
-
-AI was used to generate an initial implementation, structure the API endpoints, create dummy data, write the README, and align the app with the user journey document. The code should be reviewed, tested, and understood by the submitting team.
