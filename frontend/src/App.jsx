@@ -155,12 +155,14 @@ function LayoutEditor({ data, reload, setToast }) {
   </section>;
 }
 
-function OrganizerView({ data, reload, setToast }) {
+function OrganizerView({ data, reload, setToast, currentUser }) {
   const [venueFilter, setVenueFilter] = useState({ location: 'Cairo', date: '2026-07-10', minCapacity: '100' });
   const [venues, setVenues] = useState([]);
+  const [eventDate, setEventDate] = useState('');
   const [taskFilter, setTaskFilter] = useState({ status: '', speciality: '', assigned: '' });
   const [guestFilter, setGuestFilter] = useState({ rsvp: '', checkedIn: '', dietary: '', q: '' });
   const [staffFilter, setStaffFilter] = useState({ employmentType: '', speciality: '' });
+  const [vendorSearch, setVendorSearch] = useState('');
   const [budgetForm, setBudgetForm] = useState({ eventId: 'E001', category: '', planned: '', actual: '' });
   const [taskForm, setTaskForm] = useState({ title: '', assigneeId: '', status: 'Pending', dueDate: '2026-07-09', speciality: 'General' });
   const [accountForm, setAccountForm] = useState({ name: '', email: '', role: 'staff', password: 'demo123', speciality: '', employmentType: 'part-time' });
@@ -171,6 +173,9 @@ function OrganizerView({ data, reload, setToast }) {
   const filteredTasks = data.tasks?.filter((task) => (!taskFilter.status || task.status === taskFilter.status) && (!taskFilter.speciality || task.speciality === taskFilter.speciality) && (!taskFilter.assigned || String(Boolean(task.assigneeId)) === taskFilter.assigned)) || [];
   const filteredGuests = data.guests?.filter((guest) => (!guestFilter.rsvp || guest.rsvp === guestFilter.rsvp) && (!guestFilter.checkedIn || String(guest.checkedIn) === guestFilter.checkedIn) && (!guestFilter.dietary || guest.dietary.toLowerCase().includes(guestFilter.dietary.toLowerCase())) && (!guestFilter.q || `${guest.name} ${guest.email}`.toLowerCase().includes(guestFilter.q.toLowerCase()))) || [];
   const filteredStaff = data.users?.filter((user) => user.role === 'staff' && (!staffFilter.employmentType || user.employmentType === staffFilter.employmentType) && (!staffFilter.speciality || user.speciality === staffFilter.speciality)) || [];
+  const organizerEvents = data.events?.filter((event) => event.organizerId === currentUser?.id && (!eventDate || event.date === eventDate)) || [];
+  const organizerBookings = data.bookings?.filter((booking) => booking.organizerId === currentUser?.id) || [];
+  const filteredVendors = data.vendors?.filter((vendor) => !vendorSearch || `${vendor.companyName} ${vendor.location} ${vendor.supplies?.join(' ')}`.toLowerCase().includes(vendorSearch.toLowerCase())) || [];
 
   async function searchVenues() { setVenues(await request(`/venues?${new URLSearchParams(venueFilter).toString()}`)); }
   useEffect(() => { searchVenues(); }, []);
@@ -228,6 +233,12 @@ function OrganizerView({ data, reload, setToast }) {
     reload();
   }
 
+  async function sendInvitation(guest) {
+    await request(`/guests/${guest.id}/invite`, { method: 'POST', body: JSON.stringify({ channel: 'Email' }) });
+    setToast(`Invitation sent to ${guest.name}`);
+    reload();
+  }
+
   async function exportReport() {
     const report = await request('/reports/event/E001');
     downloadFile('layali-event-report.txt', [
@@ -254,6 +265,16 @@ function OrganizerView({ data, reload, setToast }) {
     </section>
 
     <section className="panel">
+      <div className="section-head"><h3>Events and Booking Status</h3><CalendarDays size={18} /></div>
+      <Field label="Filter events by date"><input type="date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} /></Field>
+      <div className="list top-gap">{organizerEvents.map((event) => <article className="list-item" key={event.id}><div><strong>{event.name}</strong><span>{event.date} - {event.type}</span></div><StatusPill value={event.status} /></article>)}</div>
+      <div className="mini-table top-gap">{organizerBookings.map((booking) => {
+        const venue = data.venues?.find((item) => item.id === booking.venueId);
+        return <div key={booking.id}><span>{booking.eventName}</span><span>{venue?.name || booking.venueId} - {booking.eventDate}</span><StatusPill value={booking.counterProposal || booking.status} /></div>;
+      })}</div>
+    </section>
+
+    <section className="panel">
       <div className="section-head"><h3>Venue Search</h3><Search size={18} /></div>
       <div className="form-row"><Field label="City"><input value={venueFilter.location} onChange={(e) => setVenueFilter({ ...venueFilter, location: e.target.value })} /></Field><Field label="Date"><input type="date" value={venueFilter.date} onChange={(e) => setVenueFilter({ ...venueFilter, date: e.target.value })} /></Field><Field label="Capacity"><input type="number" value={venueFilter.minCapacity} onChange={(e) => setVenueFilter({ ...venueFilter, minCapacity: e.target.value })} /></Field><button onClick={searchVenues}>Search</button></div>
       <div className="list">{venues.map((venue) => <article className="list-item" key={venue.id}><div><strong>{venue.name}</strong><span>{venue.location} - {venue.capacity} guests - {money.format(venue.pricePerDay)}</span><small>{venue.availableDates?.join(', ')}</small></div><button onClick={async () => { await request('/bookings', { method: 'POST', body: JSON.stringify({ organizerId: 'U001', venueId: venue.id, eventName: 'Pop-up Showcase', eventDate: venueFilter.date, attendees: venueFilter.minCapacity, message: 'Request created from organizer search.' }) }); setToast('Booking application submitted'); reload(); }}>Apply</button></article>)}</div>
@@ -276,13 +297,13 @@ function OrganizerView({ data, reload, setToast }) {
       <div className="section-head"><h3>Stakeholder Accounts</h3><UserCog size={18} /></div>
       <form onSubmit={createAccount} className="stacked"><Field label="Name"><input value={accountForm.name} onChange={(e) => setAccountForm({ ...accountForm, name: e.target.value })} required /></Field><Field label="Email"><input type="email" value={accountForm.email} onChange={(e) => setAccountForm({ ...accountForm, email: e.target.value })} required /></Field><div className="form-row"><Field label="Role"><select value={accountForm.role} onChange={(e) => setAccountForm({ ...accountForm, role: e.target.value })}><option value="staff">Staff</option><option value="vendor">Vendor</option><option value="guest">Guest</option></select></Field><Field label="Employment"><select value={accountForm.employmentType} onChange={(e) => setAccountForm({ ...accountForm, employmentType: e.target.value })}><option>part-time</option><option>full-time</option></select></Field></div><Field label="Speciality"><input value={accountForm.speciality} onChange={(e) => setAccountForm({ ...accountForm, speciality: e.target.value })} /></Field><button>Create account</button></form>
       <div className="toolbar"><Field label="Staff type"><select value={staffFilter.employmentType} onChange={(e) => setStaffFilter({ ...staffFilter, employmentType: e.target.value })}><option value="">All</option><option>part-time</option><option>full-time</option></select></Field><Field label="Staff speciality"><input value={staffFilter.speciality} onChange={(e) => setStaffFilter({ ...staffFilter, speciality: e.target.value })} /></Field></div>
-      <div className="mini-table">{filteredStaff.map((user) => <div key={user.id}><span>{user.name}</span><span>{user.speciality || user.role}</span><button className={user.active ? 'icon danger' : 'icon'} onClick={() => updateUser(user.id, { active: !user.active }, user.active ? 'Account deactivated' : 'Account reactivated')}>{user.active ? 'Deactivate' : 'Activate'}</button></div>)}</div>
+      <div className="mini-table">{filteredStaff.map((user) => <div key={user.id}><span>{user.name}</span><span>{user.age || '-'} yrs - {user.speciality || user.role}</span><button className={user.active ? 'icon danger' : 'icon'} onClick={() => updateUser(user.id, { active: !user.active }, user.active ? 'Account deactivated' : 'Account reactivated')}>{user.active ? 'Deactivate' : 'Activate'}</button></div>)}</div>
     </section>
 
     <section className="panel">
       <div className="section-head"><h3>Guest Filters</h3><UsersRound size={18} /></div>
       <div className="toolbar"><Field label="Search"><input value={guestFilter.q} onChange={(e) => setGuestFilter({ ...guestFilter, q: e.target.value })} /></Field><Field label="RSVP"><select value={guestFilter.rsvp} onChange={(e) => setGuestFilter({ ...guestFilter, rsvp: e.target.value })}><option value="">All</option><option>Attending</option><option>Maybe</option><option>Not Attending</option></select></Field><Field label="Checked in"><select value={guestFilter.checkedIn} onChange={(e) => setGuestFilter({ ...guestFilter, checkedIn: e.target.value })}><option value="">All</option><option value="true">Arrived</option><option value="false">Not arrived</option></select></Field><Field label="Dietary"><input value={guestFilter.dietary} onChange={(e) => setGuestFilter({ ...guestFilter, dietary: e.target.value })} /></Field></div>
-      <div className="mini-table">{filteredGuests.map((guest) => <div key={guest.id}><span>{guest.name}</span><span>{guest.rsvp} - {guest.dietary}</span><StatusPill value={guest.checkedIn ? 'Arrived' : 'Not Arrived'} /></div>)}</div>
+      <div className="mini-table">{filteredGuests.map((guest) => <div key={guest.id}><span>{guest.name}</span><span>{guest.rsvp} - {guest.dietary} - {guest.invitationSent ? 'Invited' : 'Not invited'}</span><button onClick={() => sendInvitation(guest)} disabled={guest.invitationSent}>{guest.invitationSent ? 'Sent' : 'Send invite'}</button></div>)}</div>
     </section>
 
     <section className="panel">
@@ -294,25 +315,36 @@ function OrganizerView({ data, reload, setToast }) {
     <section className="panel">
       <div className="section-head"><h3>Vendor Coordination</h3><PackageCheck size={18} /></div>
       <form onSubmit={sendSourcingRequest} className="stacked"><Field label="Vendor"><select value={vendorForm.vendorId} onChange={(e) => setVendorForm({ ...vendorForm, vendorId: e.target.value })}>{data.vendors?.map((vendor) => <option key={vendor.id} value={vendor.id}>{vendor.companyName}</option>)}</select></Field><Field label="Requested items"><input value={vendorForm.items} onChange={(e) => setVendorForm({ ...vendorForm, items: e.target.value })} required /></Field><div className="form-row"><Field label="Quantity"><input type="number" value={vendorForm.quantity} onChange={(e) => setVendorForm({ ...vendorForm, quantity: Number(e.target.value) })} required /></Field><Field label="Delivery"><input type="date" value={vendorForm.deliveryDate} onChange={(e) => setVendorForm({ ...vendorForm, deliveryDate: e.target.value })} required /></Field></div><button>Send request</button></form>
+      <Field label="Search vendors"><input value={vendorSearch} onChange={(e) => setVendorSearch(e.target.value)} placeholder="Name, supply, or location" /></Field>
+      <div className="list top-gap">{filteredVendors.map((vendor) => <article className="list-item" key={vendor.id}><div><strong>{vendor.companyName}</strong><span>{vendor.location} - {vendor.supplies?.join(', ')}</span><small>{vendor.contact} - {vendor.pricing}</small></div><StatusPill value={`${vendor.rating || '-'} Rating`} /></article>)}</div>
+      <div className="mini-table top-gap">{data.invoices?.map((item) => {
+        const vendor = data.vendors?.find((vendorItem) => vendorItem.id === item.vendorId);
+        return <div key={item.id}><span>{vendor?.companyName || item.vendorId}</span><span>{money.format(item.amount)} - {item.breakdown}</span><select value={item.status} onChange={async (e) => { await request(`/invoices/${item.id}`, { method: 'PATCH', body: JSON.stringify({ status: e.target.value }) }); setToast('Invoice review updated'); reload(); }}><option>Pending Review</option><option>Approved</option><option>Paid</option></select></div>;
+      })}</div>
     </section>
 
     <section className="panel">
       <div className="section-head"><h3>Guest Messages</h3><MessageSquare size={18} /></div>
       <form onSubmit={sendMessage} className="stacked"><Field label="Message"><textarea value={message} onChange={(e) => setMessage(e.target.value)} required /></Field><button>Send live update</button></form>
       <div className="actions top-gap"><button onClick={sendFollowUp}><Send size={16} /> Follow up unseen</button><button onClick={exportReport}><Download size={16} /> Export report</button></div>
-      <div className="mini-table">{data.messages?.map((item) => <div key={item.id}><span>{item.body}</span><span>{item.audience}</span><StatusPill value={`${item.seenBy?.length || 0} Seen`} /></div>)}</div>
+      <div className="mini-table">{data.messages?.map((item) => <div key={item.id}><span>{item.body}</span><span>{item.audience}</span><StatusPill value={`${item.seenBy?.length || 0}/${data.guests?.length || 0} Seen`} /></div>)}</div>
+      <div className="mini-table top-gap">{data.guests?.map((guest) => <div key={guest.id}><span>{guest.name}</span><span>{guest.email}</span><StatusPill value={guest.messageSeen ? 'Seen' : 'Received'} /></div>)}</div>
     </section>
 
     <LayoutEditor data={data} reload={reload} setToast={setToast} />
   </div>;
 }
 
-function StaffView({ data, reload, setToast }) {
+function StaffView({ data, reload, setToast, currentUser }) {
   const [taskStatus, setTaskStatus] = useState('');
   const [guestStatus, setGuestStatus] = useState('');
-  const tasks = data.tasks?.filter((task) => !taskStatus || task.status === taskStatus) || [];
+  const [eventDate, setEventDate] = useState('');
+  const tasks = data.tasks?.filter((task) => (!taskStatus || task.status === taskStatus) && (!currentUser?.id || task.assigneeId === currentUser.id || !task.assigneeId)) || [];
+  const staffEventIds = new Set(tasks.map((task) => task.eventId));
+  const staffEvents = data.events?.filter((event) => (!staffEventIds.size || staffEventIds.has(event.id)) && (!eventDate || event.date === eventDate)) || [];
   const guests = data.guests?.filter((guest) => !guestStatus || String(guest.checkedIn) === guestStatus) || [];
   return <div className="grid two">
+    <section className="panel"><div className="section-head"><h2>Assigned Events</h2><CalendarDays size={18} /></div><Field label="Date filter"><input type="date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} /></Field><div className="list top-gap">{staffEvents.map((event) => <article className="list-item" key={event.id}><div><strong>{event.name}</strong><span>{event.date} - {event.type}</span></div><StatusPill value={event.status} /></article>)}</div></section>
     <section className="panel"><div className="section-head"><h2>Staff Board</h2><ClipboardCheck size={18} /></div><Field label="Status filter"><select value={taskStatus} onChange={(e) => setTaskStatus(e.target.value)}><option value="">All</option><option>Pending</option><option>In Progress</option><option>Done</option></select></Field><div className="list top-gap">{tasks.map((task) => <article className="list-item" key={task.id}><div><strong>{task.title}</strong><span>{task.status} - {task.speciality}</span></div><button onClick={async () => { await request(`/tasks/${task.id}`, { method: 'PATCH', body: JSON.stringify({ status: 'Done' }) }); setToast('Task marked done'); reload(); }}>Done</button></article>)}</div></section>
     <section className="panel"><div className="section-head"><h2>Guest Check-In</h2><UsersRound size={18} /></div><Field label="Check-in filter"><select value={guestStatus} onChange={(e) => setGuestStatus(e.target.value)}><option value="">All</option><option value="true">Arrived</option><option value="false">Not arrived</option></select></Field><div className="list top-gap">{guests.map((guest) => <article className="list-item" key={guest.id}><div><strong>{guest.name}</strong><span>{guest.rsvp} - {guest.qrCode}</span></div><button disabled={guest.checkedIn} onClick={async () => { await request(`/guests/${guest.id}`, { method: 'PATCH', body: JSON.stringify({ checkedIn: true }) }); setToast(`${guest.name} checked in`); reload(); }}>{guest.checkedIn ? 'Arrived' : 'Check in'}</button></article>)}</div></section>
     <section className="panel"><div className="section-head"><h2>Vendor Arrivals</h2><PackageCheck size={18} /></div><div className="list">{data.sourcing?.map((item) => <article className="list-item" key={item.id}><div><strong>{item.items}</strong><span>{item.deliveryStatus}</span></div><button onClick={async () => { await request(`/sourcing-requests/${item.id}`, { method: 'PATCH', body: JSON.stringify({ deliveryStatus: 'Delivered' }) }); setToast('Vendor marked arrived'); reload(); }}>Arrived</button></article>)}</div></section>
@@ -351,10 +383,17 @@ function VendorView({ data, reload, setToast }) {
   </div>;
 }
 
-function GuestView({ data, reload, setToast }) {
-  const guest = data.guests?.[0];
+function GuestView({ data, reload, setToast, currentUser }) {
+  const guest = data.guests?.find((item) => item.email === currentUser?.email) || data.guests?.[0];
+  const guestMessages = data.messages?.filter((message) => !message.targetGuestIds || message.targetGuestIds.includes(guest?.id)) || [];
   const [dietary, setDietary] = useState(guest?.dietary || '');
   const [feedback, setFeedback] = useState({ overall: 5, food: 4, venue: 5, organization: 5, comments: '' });
+  useEffect(() => { if (guest?.dietary !== undefined) setDietary(guest.dietary); }, [guest?.id]);
+  useEffect(() => {
+    const unseen = guestMessages.filter((message) => guest?.id && !message.seenBy?.includes(guest.id));
+    if (!unseen.length) return;
+    Promise.all(unseen.map((message) => request(`/communications/${message.id}/seen`, { method: 'PATCH', body: JSON.stringify({ guestId: guest.id }) }))).then(reload).catch(() => {});
+  }, [guest?.id, guestMessages.length]);
   async function updateRsvp(value) {
     await request(`/guests/${guest.id}`, { method: 'PATCH', body: JSON.stringify({ rsvp: value, dietary }) });
     setToast('RSVP updated');
@@ -365,21 +404,43 @@ function GuestView({ data, reload, setToast }) {
     await request('/feedback', { method: 'POST', body: JSON.stringify({ eventId: guest.eventId, guestId: guest.id, ...feedback }) });
     setToast('Thank you for your feedback');
   }
-  return <div className="grid two"><section className="panel invite"><h2>Nile Makers Night</h2><p>July 10, 2026 at Zamalek Glasshouse</p><p>Dress code: Smart casual. Agenda: demos, live showcase, networking.</p><div className="qr">{guest?.qrCode}</div><Field label="Dietary or special requirements"><input value={dietary} onChange={(e) => setDietary(e.target.value)} /></Field><div className="segmented"><button onClick={() => updateRsvp('Attending')}>Attending</button><button onClick={() => updateRsvp('Maybe')}>Maybe</button><button onClick={() => updateRsvp('Not Attending')}>Decline</button></div><p className="muted">Current RSVP: {guest?.rsvp}.</p></section><section className="panel"><div className="section-head"><h2>Live Updates</h2><MessageSquare size={18} /></div>{data.messages?.map((msg) => <article className="notice" key={msg.id}>{msg.body}<StatusPill value={msg.seenBy?.includes(guest?.id) ? 'Seen' : 'Received'} /></article>)}<form onSubmit={submitFeedback} className="stacked"><div className="form-row"><Field label="Overall"><input type="number" min="1" max="5" value={feedback.overall} onChange={(e) => setFeedback({ ...feedback, overall: Number(e.target.value) })} /></Field><Field label="Food"><input type="number" min="1" max="5" value={feedback.food} onChange={(e) => setFeedback({ ...feedback, food: Number(e.target.value) })} /></Field></div><div className="form-row"><Field label="Venue"><input type="number" min="1" max="5" value={feedback.venue} onChange={(e) => setFeedback({ ...feedback, venue: Number(e.target.value) })} /></Field><Field label="Organization"><input type="number" min="1" max="5" value={feedback.organization} onChange={(e) => setFeedback({ ...feedback, organization: Number(e.target.value) })} /></Field></div><Field label="Post-event comments"><textarea value={feedback.comments} onChange={(e) => setFeedback({ ...feedback, comments: e.target.value })} placeholder="Share your experience" /></Field><button>Send feedback</button></form></section></div>;
+  return <div className="grid two"><section className="panel invite"><h2>Nile Makers Night</h2><p>July 10, 2026 at Zamalek Glasshouse</p><p>Dress code: Smart casual. Agenda: demos, live showcase, networking.</p><StatusPill value={guest?.invitationSent ? 'Invitation Received' : 'Invitation Pending'} /><div className="qr">{guest?.qrCode}</div><Field label="Dietary or special requirements"><input value={dietary} onChange={(e) => setDietary(e.target.value)} /></Field><div className="segmented"><button onClick={() => updateRsvp('Attending')}>Attending</button><button onClick={() => updateRsvp('Maybe')}>Maybe</button><button onClick={() => updateRsvp('Not Attending')}>Decline</button></div><p className="muted">Current RSVP: {guest?.rsvp}. Check-in: {guest?.checkedIn ? 'Confirmed' : 'Not arrived yet'}.</p></section><section className="panel"><div className="section-head"><h2>Live Updates</h2><MessageSquare size={18} /></div>{guestMessages.map((msg) => <article className="notice" key={msg.id}>{msg.body}<StatusPill value={msg.seenBy?.includes(guest?.id) ? 'Seen' : 'Received'} /></article>)}<form onSubmit={submitFeedback} className="stacked"><div className="form-row"><Field label="Overall"><input type="number" min="1" max="5" value={feedback.overall} onChange={(e) => setFeedback({ ...feedback, overall: Number(e.target.value) })} /></Field><Field label="Food"><input type="number" min="1" max="5" value={feedback.food} onChange={(e) => setFeedback({ ...feedback, food: Number(e.target.value) })} /></Field></div><div className="form-row"><Field label="Venue"><input type="number" min="1" max="5" value={feedback.venue} onChange={(e) => setFeedback({ ...feedback, venue: Number(e.target.value) })} /></Field><Field label="Organization"><input type="number" min="1" max="5" value={feedback.organization} onChange={(e) => setFeedback({ ...feedback, organization: Number(e.target.value) })} /></Field></div><Field label="Post-event comments"><textarea value={feedback.comments} onChange={(e) => setFeedback({ ...feedback, comments: e.target.value })} placeholder="Share your experience" /></Field><button>Send feedback</button></form></section></div>;
 }
 
-function OwnerView({ data, reload, setToast }) {
-  const [venue, setVenue] = useState({ ownerId: 'U005', name: '', location: 'Cairo', capacity: '', size: '', pricePerDay: '', amenities: '', availableDates: '', photos: '', floorPlan: '' });
+function OwnerView({ data, reload, setToast, currentUser }) {
+  const emptyVenue = { ownerId: currentUser?.id || 'U005', id: '', name: '', description: '', location: 'Cairo', capacity: '', size: '', pricePerDay: '', amenities: '', availableDates: '', photos: '', floorPlan: '' };
+  const [venue, setVenue] = useState(emptyVenue);
+  const [ownerProfile, setOwnerProfile] = useState({ name: currentUser?.name || '', email: currentUser?.email || '' });
   const [bookingFilter, setBookingFilter] = useState({ status: '', dateFrom: '', dateTo: '' });
   const approved = data.bookings?.filter((booking) => booking.status === 'Approved') || [];
   const bookings = data.bookings?.filter((booking) => (!bookingFilter.status || booking.status === bookingFilter.status) && (!bookingFilter.dateFrom || booking.eventDate >= bookingFilter.dateFrom) && (!bookingFilter.dateTo || booking.eventDate <= bookingFilter.dateTo)) || [];
   const revenue = approved.reduce((sum, booking) => sum + (data.venues?.find((item) => item.id === booking.venueId)?.pricePerDay || 0), 0);
+  useEffect(() => { setOwnerProfile({ name: currentUser?.name || '', email: currentUser?.email || '' }); }, [currentUser?.id]);
 
-  async function createVenue(event) {
+  async function saveOwnerProfile(event) {
     event.preventDefault();
-    await request('/venues', { method: 'POST', body: JSON.stringify({ ...venue, capacity: Number(venue.capacity), size: Number(venue.size), pricePerDay: Number(venue.pricePerDay) }) });
-    setVenue({ ownerId: 'U005', name: '', location: 'Cairo', capacity: '', size: '', pricePerDay: '', amenities: '', availableDates: '', photos: '', floorPlan: '' });
-    setToast('Venue listing created');
+    await request(`/users/${currentUser.id}`, { method: 'PATCH', body: JSON.stringify(ownerProfile) });
+    setToast('Venue owner profile updated');
+    reload();
+  }
+
+  async function saveVenue(event) {
+    event.preventDefault();
+    const payload = { ...venue, ownerId: currentUser?.id || venue.ownerId, capacity: Number(venue.capacity), size: Number(venue.size), pricePerDay: Number(venue.pricePerDay) };
+    if (venue.id) await request(`/venues/${venue.id}`, { method: 'PATCH', body: JSON.stringify(payload) });
+    else await request('/venues', { method: 'POST', body: JSON.stringify(payload) });
+    setVenue(emptyVenue);
+    setToast(venue.id ? 'Venue listing updated' : 'Venue listing created');
+    reload();
+  }
+
+  function editVenue(item) {
+    setVenue({ ...emptyVenue, ...item, amenities: item.amenities?.join(', ') || '', availableDates: item.availableDates?.join(', ') || '', photos: item.photos?.join(', ') || '' });
+  }
+
+  async function removeVenue(id) {
+    await request(`/venues/${id}`, { method: 'DELETE' });
+    setToast('Venue listing removed');
     reload();
   }
 
@@ -392,7 +453,8 @@ function OwnerView({ data, reload, setToast }) {
 
   return <div className="grid two">
     <section className="panel span"><div className="stats"><Stat icon={Warehouse} label="Active venues" value={data.venues?.filter((item) => item.active).length || 0} /><Stat icon={CalendarDays} label="Approved bookings" value={approved.length} /><Stat icon={Coins} label="Estimated revenue" value={money.format(revenue)} /></div><div className="actions top-gap"><button onClick={exportRevenue}><Download size={16} /> Export revenue</button></div></section>
-    <section className="panel"><div className="section-head"><h2>Venue Listings</h2><Warehouse size={18} /></div><form onSubmit={createVenue} className="stacked"><Field label="Name"><input value={venue.name} onChange={(e) => setVenue({ ...venue, name: e.target.value })} required /></Field><div className="form-row"><Field label="Capacity"><input type="number" value={venue.capacity} onChange={(e) => setVenue({ ...venue, capacity: e.target.value })} required /></Field><Field label="Price/day"><input type="number" value={venue.pricePerDay} onChange={(e) => setVenue({ ...venue, pricePerDay: e.target.value })} required /></Field></div><div className="form-row"><Field label="Size m2"><input type="number" value={venue.size} onChange={(e) => setVenue({ ...venue, size: e.target.value })} required /></Field><Field label="Availability dates"><input value={venue.availableDates} onChange={(e) => setVenue({ ...venue, availableDates: e.target.value })} placeholder="2026-08-09, 2026-08-15" /></Field></div><Field label="Amenities"><input value={venue.amenities} onChange={(e) => setVenue({ ...venue, amenities: e.target.value })} /></Field><div className="form-row"><Field label="Photo files"><input value={venue.photos} onChange={(e) => setVenue({ ...venue, photos: e.target.value })} /></Field><Field label="Floor plan file"><input value={venue.floorPlan} onChange={(e) => setVenue({ ...venue, floorPlan: e.target.value })} /></Field></div><button>Create listing</button></form><div className="mini-table">{data.venues?.map((item) => <div key={item.id}><span>{item.name}</span><span>{item.availableDates?.join(', ')}</span><button className={item.active ? 'icon danger' : 'icon'} onClick={async () => { await request(`/venues/${item.id}`, { method: 'PATCH', body: JSON.stringify({ active: !item.active }) }); setToast(item.active ? 'Venue deactivated' : 'Venue reactivated'); reload(); }}>{item.active ? 'Deactivate' : 'Activate'}</button></div>)}</div></section>
+    <section className="panel"><div className="section-head"><h2>Owner Profile</h2><UserCog size={18} /></div><form onSubmit={saveOwnerProfile} className="stacked"><Field label="Name"><input value={ownerProfile.name} onChange={(e) => setOwnerProfile({ ...ownerProfile, name: e.target.value })} required /></Field><Field label="Email"><input type="email" value={ownerProfile.email} onChange={(e) => setOwnerProfile({ ...ownerProfile, email: e.target.value })} required /></Field><button>Save profile</button></form></section>
+    <section className="panel"><div className="section-head"><h2>Venue Listings</h2><Warehouse size={18} /></div><form onSubmit={saveVenue} className="stacked"><Field label="Name"><input value={venue.name} onChange={(e) => setVenue({ ...venue, name: e.target.value })} required /></Field><Field label="Description"><textarea value={venue.description} onChange={(e) => setVenue({ ...venue, description: e.target.value })} /></Field><div className="form-row"><Field label="Capacity"><input type="number" value={venue.capacity} onChange={(e) => setVenue({ ...venue, capacity: e.target.value })} required /></Field><Field label="Price/day"><input type="number" value={venue.pricePerDay} onChange={(e) => setVenue({ ...venue, pricePerDay: e.target.value })} required /></Field></div><div className="form-row"><Field label="Size m2"><input type="number" value={venue.size} onChange={(e) => setVenue({ ...venue, size: e.target.value })} required /></Field><Field label="Availability dates"><input value={venue.availableDates} onChange={(e) => setVenue({ ...venue, availableDates: e.target.value })} placeholder="2026-08-09, 2026-08-15" /></Field></div><Field label="Amenities"><input value={venue.amenities} onChange={(e) => setVenue({ ...venue, amenities: e.target.value })} /></Field><div className="form-row"><Field label="Photo files"><input value={venue.photos} onChange={(e) => setVenue({ ...venue, photos: e.target.value })} /></Field><Field label="Floor plan file"><input value={venue.floorPlan} onChange={(e) => setVenue({ ...venue, floorPlan: e.target.value })} /></Field></div><div className="actions"><button>{venue.id ? 'Update listing' : 'Create listing'}</button>{venue.id && <button type="button" className="ghost" onClick={() => setVenue(emptyVenue)}>Cancel edit</button>}</div></form><div className="mini-table">{data.venues?.map((item) => <div key={item.id}><span>{item.name}</span><span>{item.availableDates?.join(', ')}</span><div className="actions"><button onClick={() => editVenue(item)}>Edit</button><button className={item.active ? 'icon danger' : 'icon'} onClick={async () => { await request(`/venues/${item.id}`, { method: 'PATCH', body: JSON.stringify({ active: !item.active }) }); setToast(item.active ? 'Venue deactivated' : 'Venue reactivated'); reload(); }}>{item.active ? 'Deactivate' : 'Activate'}</button><button className="icon danger" onClick={() => removeVenue(item.id)}><Trash2 size={15} /></button></div></div>)}</div></section>
     <section className="panel"><div className="section-head"><h2>Booking Requests</h2><CalendarDays size={18} /></div><div className="toolbar"><Field label="Status"><select value={bookingFilter.status} onChange={(e) => setBookingFilter({ ...bookingFilter, status: e.target.value })}><option value="">All</option><option>Pending</option><option>Approved</option><option>Declined</option></select></Field><Field label="From"><input type="date" value={bookingFilter.dateFrom} onChange={(e) => setBookingFilter({ ...bookingFilter, dateFrom: e.target.value })} /></Field><Field label="To"><input type="date" value={bookingFilter.dateTo} onChange={(e) => setBookingFilter({ ...bookingFilter, dateTo: e.target.value })} /></Field></div><div className="list">{bookings.map((booking) => <article className="list-item" key={booking.id}><div><strong>{booking.eventName}</strong><span>{booking.eventDate} - {booking.attendees} attendees</span><StatusPill value={booking.status} /></div><div className="actions"><button onClick={async () => { await request(`/bookings/${booking.id}`, { method: 'PATCH', body: JSON.stringify({ status: 'Approved' }) }); setToast('Booking approved'); reload(); }}>Approve</button><button onClick={async () => { await request(`/bookings/${booking.id}`, { method: 'PATCH', body: JSON.stringify({ status: 'Declined', counterProposal: 'Alternative dates are available.' }) }); reload(); }}>Decline</button></div></article>)}</div></section>
     <section className="panel"><div className="section-head"><h2>Invoice Review</h2><Coins size={18} /></div><div className="mini-table">{data.invoices?.map((item) => <div key={item.id}><span>{money.format(item.amount)}</span><span>{item.attachment || item.breakdown}</span><select value={item.status} onChange={async (e) => { await request(`/invoices/${item.id}`, { method: 'PATCH', body: JSON.stringify({ status: e.target.value }) }); reload(); }}><option>Pending Review</option><option>Approved</option><option>Paid</option></select></div>)}</div></section>
   </div>;
@@ -431,12 +493,12 @@ export default function App() {
   useEffect(() => { if (!toast) return undefined; const id = setTimeout(() => setToast(''), 2800); return () => clearTimeout(id); }, [toast]);
 
   const screen = useMemo(() => ({
-    organizer: <OrganizerView data={data} reload={load} setToast={setToast} />,
-    staff: <StaffView data={data} reload={load} setToast={setToast} />,
+    organizer: <OrganizerView data={data} reload={load} setToast={setToast} currentUser={currentUser} />,
+    staff: <StaffView data={data} reload={load} setToast={setToast} currentUser={currentUser} />,
     vendor: <VendorView data={data} reload={load} setToast={setToast} />,
-    guest: <GuestView data={data} reload={load} setToast={setToast} />,
-    owner: <OwnerView data={data} reload={load} setToast={setToast} />
-  }), [data, role]);
+    guest: <GuestView data={data} reload={load} setToast={setToast} currentUser={currentUser} />,
+    owner: <OwnerView data={data} reload={load} setToast={setToast} currentUser={currentUser} />
+  }), [data, role, currentUser]);
 
   if (!currentUser) return <><AuthScreen setToast={setToast} onAuthenticated={(user) => { setCurrentUser(user); setRole(user.role); }} />{toast && <div className="toast">{toast}</div>}</>;
 
