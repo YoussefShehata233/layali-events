@@ -15,6 +15,7 @@
       "email": "omar@layali.test",
       "password": "demo123",
       "active": true,
+      "age": 29,
       "speciality": "Logistics",
       "employmentType": "full-time"
     },
@@ -25,6 +26,7 @@
       "email": "mariam@layali.test",
       "password": "demo123",
       "active": true,
+      "age": 24,
       "speciality": "Guest Experience",
       "employmentType": "part-time"
     },
@@ -58,6 +60,7 @@
       "id": "V001",
       "ownerId": "U005",
       "name": "Zamalek Glasshouse",
+      "description": "Garden-facing glass venue for markets and showcases.",
       "location": "Cairo",
       "capacity": 180,
       "size": 360,
@@ -83,6 +86,7 @@
       "id": "V002",
       "ownerId": "U005",
       "name": "Nile Foundry Hall",
+      "description": "Industrial hall with loading access for larger productions.",
       "location": "Giza",
       "capacity": 260,
       "size": 520,
@@ -106,6 +110,7 @@
       "id": "V003",
       "ownerId": "U005",
       "name": "Heliopolis Rooftop Studio",
+      "description": "Compact rooftop venue for intimate networking events.",
       "location": "Cairo",
       "capacity": 90,
       "size": 170,
@@ -279,7 +284,9 @@
       "deliveryDate": "2026-07-10",
       "status": "Accepted",
       "note": "Please add two gluten-free trays.",
-      "deliveryStatus": "Preparing"
+      "deliveryStatus": "Preparing",
+      "eventLocation": "Zamalek Glasshouse",
+      "organizerContact": "nour@layali.test"
     },
     {
       "id": "SR002",
@@ -290,7 +297,9 @@
       "deliveryDate": "2026-07-10",
       "status": "Pending",
       "note": "",
-      "deliveryStatus": "Not Scheduled"
+      "deliveryStatus": "Not Scheduled",
+      "eventLocation": "Zamalek Glasshouse",
+      "organizerContact": "nour@layali.test"
     }
   ],
   "invoices": [
@@ -313,8 +322,12 @@
       "email": "farah@example.test",
       "rsvp": "Attending",
       "dietary": "Vegetarian",
+      "specialRequirements": "Near entrance seating",
       "checkedIn": true,
       "messageSeen": true,
+      "invitationSent": true,
+      "invitedAt": "2026-06-28T10:30:00",
+      "invitationChannel": "Email",
       "qrCode": "LAYALI-G001"
     },
     {
@@ -324,8 +337,12 @@
       "email": "karim@example.test",
       "rsvp": "Maybe",
       "dietary": "No peanuts",
+      "specialRequirements": "",
       "checkedIn": false,
       "messageSeen": false,
+      "invitationSent": false,
+      "invitedAt": "",
+      "invitationChannel": "",
       "qrCode": "LAYALI-G002"
     },
     {
@@ -335,8 +352,12 @@
       "email": "lina@example.test",
       "rsvp": "Attending",
       "dietary": "None",
+      "specialRequirements": "Wheelchair access",
       "checkedIn": false,
       "messageSeen": true,
+      "invitationSent": true,
+      "invitedAt": "2026-06-28T10:30:00",
+      "invitationChannel": "Email",
       "qrCode": "LAYALI-G003"
     }
   ],

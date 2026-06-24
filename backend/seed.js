@@ -2,16 +2,16 @@
 const data = {
   users: [
     { id: 'U001', name: 'Nour Hassan', role: 'organizer', email: 'nour@layali.test', password: 'demo123', active: true },
-    { id: 'U002', name: 'Omar Selim', role: 'staff', email: 'omar@layali.test', password: 'demo123', active: true, speciality: 'Logistics', employmentType: 'full-time' },
-    { id: 'U003', name: 'Mariam Adel', role: 'staff', email: 'mariam@layali.test', password: 'demo123', active: true, speciality: 'Guest Experience', employmentType: 'part-time' },
+    { id: 'U002', name: 'Omar Selim', role: 'staff', email: 'omar@layali.test', password: 'demo123', active: true, age: 29, speciality: 'Logistics', employmentType: 'full-time' },
+    { id: 'U003', name: 'Mariam Adel', role: 'staff', email: 'mariam@layali.test', password: 'demo123', active: true, age: 24, speciality: 'Guest Experience', employmentType: 'part-time' },
     { id: 'U004', name: 'Cairo Bloom Catering', role: 'vendor', email: 'sales@cairobloom.test', password: 'demo123', active: true },
     { id: 'U005', name: 'Zamalek Warehouse Co.', role: 'owner', email: 'owner@zamalekwarehouse.test', password: 'demo123', active: true },
     { id: 'U006', name: 'Farah Amin', role: 'guest', email: 'farah@example.test', password: 'demo123', active: true }
   ],
   venues: [
-    { id: 'V001', ownerId: 'U005', name: 'Zamalek Glasshouse', location: 'Cairo', capacity: 180, size: 360, pricePerDay: 42000, amenities: ['Garden terrace', 'Projector', 'Valet'], photos: ['glasshouse-main.jpg', 'terrace-entry.jpg'], floorPlan: 'glasshouse-floorplan.pdf', active: true, availableDates: ['2026-07-10', '2026-07-18', '2026-08-02'] },
-    { id: 'V002', ownerId: 'U005', name: 'Nile Foundry Hall', location: 'Giza', capacity: 260, size: 520, pricePerDay: 58000, amenities: ['Loading dock', 'Stage lights', 'Backup generator'], photos: ['foundry-hall.jpg'], floorPlan: 'foundry-floorplan.pdf', active: true, availableDates: ['2026-07-12', '2026-07-20'] },
-    { id: 'V003', ownerId: 'U005', name: 'Heliopolis Rooftop Studio', location: 'Cairo', capacity: 90, size: 170, pricePerDay: 22000, amenities: ['Rooftop', 'Sound system'], photos: ['rooftop-studio.jpg'], floorPlan: 'rooftop-floorplan.pdf', active: true, availableDates: ['2026-07-10', '2026-07-22'] }
+    { id: 'V001', ownerId: 'U005', name: 'Zamalek Glasshouse', description: 'Garden-facing glass venue for markets and showcases.', location: 'Cairo', capacity: 180, size: 360, pricePerDay: 42000, amenities: ['Garden terrace', 'Projector', 'Valet'], photos: ['glasshouse-main.jpg', 'terrace-entry.jpg'], floorPlan: 'glasshouse-floorplan.pdf', active: true, availableDates: ['2026-07-10', '2026-07-18', '2026-08-02'] },
+    { id: 'V002', ownerId: 'U005', name: 'Nile Foundry Hall', description: 'Industrial hall with loading access for larger productions.', location: 'Giza', capacity: 260, size: 520, pricePerDay: 58000, amenities: ['Loading dock', 'Stage lights', 'Backup generator'], photos: ['foundry-hall.jpg'], floorPlan: 'foundry-floorplan.pdf', active: true, availableDates: ['2026-07-12', '2026-07-20'] },
+    { id: 'V003', ownerId: 'U005', name: 'Heliopolis Rooftop Studio', description: 'Compact rooftop venue for intimate networking events.', location: 'Cairo', capacity: 90, size: 170, pricePerDay: 22000, amenities: ['Rooftop', 'Sound system'], photos: ['rooftop-studio.jpg'], floorPlan: 'rooftop-floorplan.pdf', active: true, availableDates: ['2026-07-10', '2026-07-22'] }
   ],
   events: [
     { id: 'E001', organizerId: 'U001', venueId: 'V001', name: 'Nile Makers Night', type: 'Creative Market', date: '2026-07-10', status: 'Planning', dressCode: 'Smart casual', agenda: '5:00 doors, 6:00 demos, 8:00 live showcase', expectedGuests: 140, plannedBudget: 155000 },
@@ -37,14 +37,14 @@ const data = {
     { id: 'VN002', userId: '', companyName: 'SoundCraft Rentals', supplies: ['Speakers', 'Lighting', 'Technicians'], location: 'Nasr City', pricing: 'Packages from 18000 EGP', contact: '0102-222-3311', rating: 4.5 }
   ],
   sourcingRequests: [
-    { id: 'SR001', eventId: 'E001', vendorId: 'VN001', items: '140 guest buffet with vegetarian options', quantity: 140, deliveryDate: '2026-07-10', status: 'Accepted', note: 'Please add two gluten-free trays.', deliveryStatus: 'Preparing' },
-    { id: 'SR002', eventId: 'E001', vendorId: 'VN002', items: 'Outdoor speaker and two wireless microphones', quantity: 1, deliveryDate: '2026-07-10', status: 'Pending', note: '', deliveryStatus: 'Not Scheduled' }
+    { id: 'SR001', eventId: 'E001', vendorId: 'VN001', items: '140 guest buffet with vegetarian options', quantity: 140, deliveryDate: '2026-07-10', status: 'Accepted', note: 'Please add two gluten-free trays.', deliveryStatus: 'Preparing', eventLocation: 'Zamalek Glasshouse', organizerContact: 'nour@layali.test' },
+    { id: 'SR002', eventId: 'E001', vendorId: 'VN002', items: 'Outdoor speaker and two wireless microphones', quantity: 1, deliveryDate: '2026-07-10', status: 'Pending', note: '', deliveryStatus: 'Not Scheduled', eventLocation: 'Zamalek Glasshouse', organizerContact: 'nour@layali.test' }
   ],
   invoices: [{ id: 'I001', vendorId: 'VN001', eventId: 'E001', amount: 48600, status: 'Pending Review', breakdown: 'Buffet, beverages, service team', attachment: 'buffet-invoice-breakdown.pdf', submittedAt: '2026-07-02' }],
   guests: [
-    { id: 'G001', eventId: 'E001', name: 'Farah Amin', email: 'farah@example.test', rsvp: 'Attending', dietary: 'Vegetarian', checkedIn: true, messageSeen: true, qrCode: 'LAYALI-G001' },
-    { id: 'G002', eventId: 'E001', name: 'Karim Lotfy', email: 'karim@example.test', rsvp: 'Maybe', dietary: 'No peanuts', checkedIn: false, messageSeen: false, qrCode: 'LAYALI-G002' },
-    { id: 'G003', eventId: 'E001', name: 'Lina Samir', email: 'lina@example.test', rsvp: 'Attending', dietary: 'None', checkedIn: false, messageSeen: true, qrCode: 'LAYALI-G003' }
+    { id: 'G001', eventId: 'E001', name: 'Farah Amin', email: 'farah@example.test', rsvp: 'Attending', dietary: 'Vegetarian', specialRequirements: 'Near entrance seating', checkedIn: true, messageSeen: true, invitationSent: true, invitedAt: '2026-06-28T10:30:00', invitationChannel: 'Email', qrCode: 'LAYALI-G001' },
+    { id: 'G002', eventId: 'E001', name: 'Karim Lotfy', email: 'karim@example.test', rsvp: 'Maybe', dietary: 'No peanuts', specialRequirements: '', checkedIn: false, messageSeen: false, invitationSent: false, invitedAt: '', invitationChannel: '', qrCode: 'LAYALI-G002' },
+    { id: 'G003', eventId: 'E001', name: 'Lina Samir', email: 'lina@example.test', rsvp: 'Attending', dietary: 'None', specialRequirements: 'Wheelchair access', checkedIn: false, messageSeen: true, invitationSent: true, invitedAt: '2026-06-28T10:30:00', invitationChannel: 'Email', qrCode: 'LAYALI-G003' }
   ],
   communications: [{ id: 'M001', eventId: 'E001', body: 'Welcome desk moved to the garden gate. Please follow signs.', sentAt: '2026-07-10T16:15:00', audience: 'All Guests', seenBy: ['G001', 'G003'] }],
   feedback: [
