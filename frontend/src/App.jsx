@@ -44,6 +44,32 @@ function Field({ label, children }) {
   return <label className="field"><span>{label}</span>{children}</label>;
 }
 
+function ProfilePanel({ currentUser, setCurrentUser, reload, setToast }) {
+  const [profile, setProfile] = useState({ name: '', email: '', password: '' });
+  useEffect(() => { setProfile({ name: currentUser?.name || '', email: currentUser?.email || '', password: '' }); }, [currentUser?.id]);
+
+  async function saveProfile(event) {
+    event.preventDefault();
+    const patch = { name: profile.name, email: profile.email };
+    if (profile.password.trim()) patch.password = profile.password;
+    const updated = await request(`/users/${currentUser.id}`, { method: 'PATCH', body: JSON.stringify(patch) });
+    setCurrentUser(updated);
+    setProfile({ name: updated.name, email: updated.email, password: '' });
+    setToast('Profile updated');
+    reload();
+  }
+
+  return <section className="panel profile-box">
+    <div className="section-head"><div><h2>My Profile</h2><p>Edit the account currently signed in to this workspace.</p></div><StatusPill value={currentUser.role === 'owner' ? 'Venue Owner' : currentUser.role} /></div>
+    <form onSubmit={saveProfile} className="toolbar">
+      <Field label="Name"><input value={profile.name} onChange={(e) => setProfile({ ...profile, name: e.target.value })} required /></Field>
+      <Field label="Email"><input type="email" value={profile.email} onChange={(e) => setProfile({ ...profile, email: e.target.value })} required /></Field>
+      <Field label="New password"><input type="password" value={profile.password} onChange={(e) => setProfile({ ...profile, password: e.target.value })} placeholder="Leave blank to keep current" /></Field>
+      <button><Edit3 size={16} /> Save profile</button>
+    </form>
+  </section>;
+}
+
 function downloadFile(filename, text, type = 'text/plain') {
   const blob = new Blob([text], { type });
   const link = document.createElement('a');
@@ -517,6 +543,7 @@ export default function App() {
         </div>
         <div className="header-actions"><button onClick={load}>Refresh data</button><button className="ghost" onClick={() => setCurrentUser(null)}>Log out</button></div>
       </header>
+      <ProfilePanel currentUser={currentUser} setCurrentUser={setCurrentUser} reload={load} setToast={setToast} />
       {loading ? <div className="loading">Loading platform data...</div> : screen[role]}
     </section>
     {toast && <div className="toast">{toast}</div>}
